@@ -9,7 +9,7 @@ Homepage: https://github.com/awslabs/aws-c-common
 Package: libaws-c-common-dev
 Section: libdevel
 Architecture: any
-Depends: libaws-c-common (= ${binary:Version}), ${misc:Depends}
+Depends: ${shlib:Depends}, ${misc:Depends}
 Description: AWS SDK for C -- development package
  Inofficial package. Currently contains a static (not shared) library.
  .
