@@ -1,0 +1,5 @@
+aws-c-common (0.4.30-1) bionic; urgency=low
+
+  * Informal and unofficial package
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Sat, 15 Feb 2020 13:12:05 -0600

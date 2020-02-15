@@ -1,0 +1,17 @@
+Source: aws-c-common
+Section: devel
+Priority: optional
+Maintainer: Dirk Eddelbuettel <edd@debian.org>
+Standards-Version: 4.4.0
+Build-Depends: debhelper (>= 11~), gcc (>= 4:4.0), binutils (>= 2.12.90.0.9), cmake
+Homepage: https://github.com/awslabs/aws-c-common
+
+Package: libaws-c-common-dev
+Section: libdevel
+Architecture: any
+Depends: libaws-c-common (= ${binary:Version}), ${misc:Depends}
+Description: AWS SDK for C -- development package
+ Inofficial package. Currently contains a static (not shared) library.
+ .
+ Core c99 package for AWS SDK for C. Includes cross-platform primitives,
+ configuration, data structures, and error handling. 

@@ -1,0 +1,5 @@
+Inofficial local Debian package for the AWS SDK for C
+
+Upstream:  https://github.com/awslabs/aws-c-common
+
+Packaged by Dirk Eddelbuettel <edd@debian.org>
