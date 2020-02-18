@@ -9,6 +9,14 @@ export DESTDIR=$(CURDIR)/debian/tmp
 %:
 	dh $@ 
 
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DCMAKE_BUILD_TYPE="Release" \
+		-DENABLE_TESTING=ON \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DENABLE_UNITY_BUILD=ON \
+		-DCUSTOM_MEMORY_MANAGEMENT=0
+
 #override_dh_auto_configure:
 #	dh_auto_configure -- \
 #              -DCMAKE_LIBRARY_ARCHITECTURE="$(DEB_HOST_MULTIARCH)"
