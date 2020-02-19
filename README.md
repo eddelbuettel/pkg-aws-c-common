@@ -19,7 +19,7 @@ Create yourself a `.orig.tar.gz` and use it with `dpkg-buildpackage` as for exam
 ```sh
 cd ..
 tar cvz --exclude=.git --exclude=debian --exclude=build \
-	--file aws-c-common_0.4.30-1.orig.tar.gz pkg-aws-c-common
+	--file aws-c-common_0.4.30.orig.tar.gz pkg-aws-c-common
 cd -
 dpkg-buildpackage -rfakeroot -us -uc -tc
 ```
