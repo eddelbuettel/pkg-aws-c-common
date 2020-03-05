@@ -1,5 +1,11 @@
-aws-c-common (0.4.30-1) bionic; urgency=low
+aws-c-common (0.4.30-1debian) unstable; urgency=medium
 
-  * Informal and unofficial package
+  * Debian build of informal and unofficial package
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Thu, 05 Mar 2020 09:15:05 -0600
+
+aws-c-common (0.4.30-1bionic1) bionic; urgency=medium
+
+  * Ubuntu PPA build of informal and unofficial package
 
  -- Dirk Eddelbuettel <edd@debian.org>  Sat, 15 Feb 2020 13:12:05 -0600
