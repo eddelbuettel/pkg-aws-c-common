@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include "logging_test_utilities.h"
@@ -23,9 +13,9 @@
 #include <errno.h>
 #include <stdio.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 #    include <sys/file.h>
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #ifdef _MSC_VER
 #    pragma warning(disable : 4996) /* Disable warnings about fopen() being insecure */
@@ -165,11 +155,11 @@ static int s_log_writer_bad_file_test(struct aws_allocator *allocator, void *ctx
 
     ASSERT_TRUE(result == AWS_OP_ERR, "Log file open succeeded despite an invalid file name");
 
-#ifdef WIN32
+#ifdef _WIN32
     ASSERT_TRUE(aws_error == AWS_ERROR_NO_PERMISSION, "File open error was not no permission as expected");
 #else
     ASSERT_TRUE(aws_error == AWS_ERROR_FILE_INVALID_PATH, "File open error was not invalid path as expected");
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
     return AWS_OP_SUCCESS;
 }

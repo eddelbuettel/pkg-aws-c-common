@@ -1,18 +1,8 @@
 #ifndef AWS_TESTING_AWS_TEST_HARNESS_H
 #define AWS_TESTING_AWS_TEST_HARNESS_H
-/*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/common.h>
@@ -306,6 +296,46 @@ static int total_failures;
             if (!PRINT_FAIL_INTERNAL0(__VA_ARGS__)) {                                                                  \
                 PRINT_FAIL_INTERNAL0(                                                                                  \
                     "ASSERT_BIN_ARRAYS_EQUALS(%s, %s, %s, %s)", #expected, #expected_size, #got, #got_size);           \
+            }                                                                                                          \
+            POSTFAIL_INTERNAL();                                                                                       \
+        }                                                                                                              \
+    } while (0)
+
+#define ASSERT_CURSOR_VALUE_STRING_EQUALS(cursor, string, ...)                                                         \
+    do {                                                                                                               \
+        const uint8_t *assert_ex_p = (const uint8_t *)((cursor).ptr);                                                  \
+        size_t assert_ex_s = (cursor).len;                                                                             \
+        const uint8_t *assert_got_p = (const uint8_t *)aws_string_c_str(string);                                       \
+        size_t assert_got_s = (string)->len;                                                                           \
+        if (assert_ex_s == 0 && assert_got_s == 0) {                                                                   \
+            break;                                                                                                     \
+        }                                                                                                              \
+        if (assert_ex_s != assert_got_s) {                                                                             \
+            fprintf(AWS_TESTING_REPORT_FD, "%sSize mismatch: %zu != %zu: ", FAIL_PREFIX, assert_ex_s, assert_got_s);   \
+            if (!PRINT_FAIL_INTERNAL0(__VA_ARGS__)) {                                                                  \
+                PRINT_FAIL_INTERNAL0("ASSERT_CURSOR_VALUE_STRING_EQUALS(%s, %s)", #cursor, #string);                   \
+            }                                                                                                          \
+            POSTFAIL_INTERNAL();                                                                                       \
+        }                                                                                                              \
+        if (memcmp(assert_ex_p, assert_got_p, assert_got_s) != 0) {                                                    \
+            if (assert_got_s <= 1024) {                                                                                \
+                for (size_t assert_i = 0; assert_i < assert_ex_s; ++assert_i) {                                        \
+                    if (assert_ex_p[assert_i] != assert_got_p[assert_i]) {                                             \
+                        fprintf(                                                                                       \
+                            AWS_TESTING_REPORT_FD,                                                                     \
+                            "%sMismatch at byte[%zu]: 0x%02X != 0x%02X: ",                                             \
+                            FAIL_PREFIX,                                                                               \
+                            assert_i,                                                                                  \
+                            assert_ex_p[assert_i],                                                                     \
+                            assert_got_p[assert_i]);                                                                   \
+                        break;                                                                                         \
+                    }                                                                                                  \
+                }                                                                                                      \
+            } else {                                                                                                   \
+                fprintf(AWS_TESTING_REPORT_FD, "%sData mismatch: ", FAIL_PREFIX);                                      \
+            }                                                                                                          \
+            if (!PRINT_FAIL_INTERNAL0(__VA_ARGS__)) {                                                                  \
+                PRINT_FAIL_INTERNAL0("ASSERT_CURSOR_VALUE_STRING_EQUALS(%s, %s)", #cursor, #string);                   \
             }                                                                                                          \
             POSTFAIL_INTERNAL();                                                                                       \
         }                                                                                                              \

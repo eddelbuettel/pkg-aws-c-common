@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/hash_table.h>
@@ -1255,6 +1245,37 @@ static int s_test_hash_table_byte_cursor_create_find_fn(struct aws_allocator *al
     aws_hash_table_clean_up(&hash_table);
 
     aws_string_destroy(key_3_str);
+
+    return 0;
+}
+
+AWS_TEST_CASE(test_hash_combine, s_test_hash_combine_fn)
+static int s_test_hash_combine_fn(struct aws_allocator *allocator, void *ctx) {
+    (void)allocator;
+    (void)ctx;
+
+    /* We're assuming that the underlying hashing function works well.
+     * This test just makes sure we hooked it up right for 2 64bit values */
+
+    uint64_t a = 0x123456789abcdef;
+    uint64_t b = 0xfedcba987654321;
+    uint64_t c = aws_hash_combine(a, b);
+
+    /* Sanity check */
+    ASSERT_TRUE(c != a);
+    ASSERT_TRUE(c != b);
+
+    /* Same inputs gets same results, right? */
+    ASSERT_UINT_EQUALS(c, aws_hash_combine(a, b));
+
+    /* Result spread across all bytes, right? */
+    uint8_t *c_bytes = (uint8_t *)&c;
+    for (size_t i = 0; i < sizeof(c); ++i) {
+        ASSERT_TRUE(c_bytes[i] != 0);
+    }
+
+    /* Hash should NOT be commutative */
+    ASSERT_TRUE(aws_hash_combine(a, b) != aws_hash_combine(b, a));
 
     return 0;
 }

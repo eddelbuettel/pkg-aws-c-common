@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 /* For more information on how the RH hash works and in particular how we do
@@ -988,6 +978,14 @@ uint64_t aws_hash_ptr(const void *item) {
 
     hashlittle2(&item, sizeof(item), &c, &b);
 
+    return ((uint64_t)b << 32) | c;
+}
+
+uint64_t aws_hash_combine(uint64_t item1, uint64_t item2) {
+    uint32_t b = item2 & 0xFFFFFFFF; /* LSB */
+    uint32_t c = item2 >> 32;        /* MSB */
+
+    hashlittle2(&item1, sizeof(item1), &c, &b);
     return ((uint64_t)b << 32) | c;
 }
 

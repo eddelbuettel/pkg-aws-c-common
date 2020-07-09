@@ -1,19 +1,9 @@
 #ifndef AWS_COMMON_HASH_TABLE_H
 #define AWS_COMMON_HASH_TABLE_H
 
-/*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/common.h>
@@ -393,6 +383,9 @@ uint64_t aws_hash_byte_cursor_ptr(const void *item);
  */
 AWS_COMMON_API
 uint64_t aws_hash_ptr(const void *item);
+
+AWS_COMMON_API
+uint64_t aws_hash_combine(uint64_t item1, uint64_t item2);
 
 /**
  * Convenience eq callback for NULL-terminated C-strings

@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/log_formatter.h>
@@ -161,7 +151,7 @@ int aws_format_standard_log_line(struct aws_logging_standard_formatting_data *fo
         /*
          * Now write the actual data requested by the user
          */
-#ifdef WIN32
+#ifdef _WIN32
         int written_count = vsnprintf_s(
             formatting_data->log_line_buffer + current_index,
             fake_total_length - current_index,
@@ -174,7 +164,7 @@ int aws_format_standard_log_line(struct aws_logging_standard_formatting_data *fo
             fake_total_length - current_index,
             formatting_data->format,
             args);
-#endif /* WIN32 */
+#endif /* _WIN32 */
         if (written_count < 0) {
             return aws_raise_error(AWS_ERROR_INVALID_ARGUMENT);
         }
@@ -222,7 +212,7 @@ static int s_default_aws_log_formatter_format(
      */
     va_list tmp_args;
     va_copy(tmp_args, args);
-#ifdef WIN32
+#ifdef _WIN32
     int required_length = _vscprintf(format, tmp_args) + 1;
 #else
     int required_length = vsnprintf(NULL, 0, format, tmp_args) + 1;

@@ -1,19 +1,9 @@
 #ifndef AWS_COMMON_ERROR_H
 #define AWS_COMMON_ERROR_H
 
-/*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/assert.h>
@@ -199,6 +189,7 @@ enum aws_common_error {
     AWS_ERROR_SYS_CALL_FAILURE,
     AWS_ERROR_C_STRING_BUFFER_NOT_NULL_TERMINATED,
     AWS_ERROR_STRING_MATCH_NOT_FOUND,
+    AWS_ERROR_DIVIDE_BY_ZERO,
 
     AWS_ERROR_END_COMMON_RANGE = AWS_ERROR_ENUM_END_RANGE(AWS_C_COMMON_PACKAGE_ID)
 };

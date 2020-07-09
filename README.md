@@ -4,6 +4,8 @@
 Taken as a complete snapshot on 2020-02-15 at sha1 15e64e4 from
 https://github.com/awslabs/aws-c-common
 
+Updated 2020-07-09 with release 0.4.48 sha1 48aafc6
+
 ### Changes
 
 No changes made other than

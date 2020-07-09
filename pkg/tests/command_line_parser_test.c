@@ -1,19 +1,14 @@
-/*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 #include <aws/common/command_line_parser.h>
 #include <aws/testing/aws_test_harness.h>
+
+/* If this is tested from a dynamic library, the static state needs to be reset */
+static void s_reset_static_state(void) {
+    aws_cli_optind = 1;
+}
 
 static int s_test_short_argument_parse_fn(struct aws_allocator *allocator, void *ctx) {
     (void)allocator;
@@ -34,6 +29,7 @@ static int s_test_short_argument_parse_fn(struct aws_allocator *allocator, void 
     };
     int argc = 5;
     int longindex = 0;
+    s_reset_static_state();
     int arg = aws_cli_getopt_long(argc, args, "ab:c", options, &longindex);
     ASSERT_INT_EQUALS('a', arg);
     ASSERT_INT_EQUALS(0, longindex);
@@ -72,6 +68,7 @@ static int s_test_long_argument_parse_fn(struct aws_allocator *allocator, void *
     };
     int argc = 5;
     int longindex = 0;
+    s_reset_static_state();
     int arg = aws_cli_getopt_long(argc, args, "ab:c", options, &longindex);
     ASSERT_INT_EQUALS('a', arg);
     ASSERT_INT_EQUALS(0, longindex);
@@ -105,6 +102,7 @@ static int s_test_unqualified_argument_parse_fn(struct aws_allocator *allocator,
     char *const args[] = {"prog-name", "-a", "--beeee", "bval", "-c", "operand"};
     int argc = 6;
     int longindex = 0;
+    s_reset_static_state();
     int arg = aws_cli_getopt_long(argc, args, "ab:c", options, &longindex);
     ASSERT_INT_EQUALS('a', arg);
     ASSERT_INT_EQUALS(0, longindex);
@@ -140,6 +138,7 @@ static int s_test_unknown_argument_parse_fn(struct aws_allocator *allocator, voi
     char *const args[] = {"prog-name", "-BOO!", "--beeee", "bval", "-c", "operand"};
     int argc = 6;
     int longindex = 0;
+    s_reset_static_state();
     int arg = aws_cli_getopt_long(argc, args, "ab:c", options, &longindex);
     ASSERT_INT_EQUALS('?', arg);
     ASSERT_INT_EQUALS(0, longindex);

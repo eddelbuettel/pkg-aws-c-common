@@ -1,23 +1,18 @@
-# Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License is located at
-#
-#  http://aws.amazon.com/apache2.0
-#
-# or in the "license" file accompanying this file. This file is distributed
-# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-# express or implied. See the License for the specific language governing
-# permissions and limitations under the License.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0.
 
 cmake_minimum_required(VERSION 3.0)
 option(STATIC_CRT "Windows specific option that to specify static/dynamic run-time library" OFF)
+option(ALLOW_CROSS_COMPILED_TESTS "Allow tests to be compiled via cross compile, for use with qemu" OFF)
 
 project(aws-c-common LANGUAGES C VERSION 0.1.0)
 
 if (POLICY CMP0069)
     cmake_policy(SET CMP0069 NEW) # Enable LTO/IPO if available in the compiler, see AwsCFlags
+endif()
+
+if (POLICY CMP0077)
+    cmake_policy(SET CMP0077 OLD) # Enable options to get their values from normal variables
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -58,11 +53,12 @@ if (WIN32)
     set(WINDOWS_KERNEL_LIB "Kernel32" CACHE STRING "The name of the kernel library to link against (default: Kernel32)")
 
     file(GLOB AWS_COMMON_OS_HEADERS
-            "include/aws/common/windows/*"
-            )
+        "include/aws/common/windows/*"
+        )
+
     file(GLOB AWS_COMMON_OS_SRC
-            "source/windows/*.c"
-            )
+        "source/windows/*.c"
+        )
 
     if (MSVC)
         source_group("Header Files\\aws\\common" FILES ${AWS_COMMON_HEADERS})
@@ -81,8 +77,13 @@ else ()
     file(GLOB AWS_COMMON_OS_SRC
         "source/posix/*.c"
         )
+
     set(THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package(Threads REQUIRED)
+
+    if (UNIX OR APPLE)
+        find_package(Threads REQUIRED)
+    endif ()
+
     if (APPLE)
         find_library(CORE_FOUNDATION_LIB CoreFoundation)
         if (NOT CORE_FOUNDATION_LIB)
@@ -96,8 +97,40 @@ else ()
         list(APPEND PLATFORM_LIBS m thr execinfo)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "NetBSD")
         list(APPEND PLATFORM_LIBS m Threads::Threads execinfo)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        list(APPEND PLATFORM_LIBS log)
+        file(GLOB ANDROID_SRC "source/android/*.c")
+        list(APPEND AWS_COMMON_OS_SRC "${ANDROID_SRC}")
     endif()
 
+endif()
+
+file(GLOB AWS_COMMON_ARCH_SRC
+     "source/arch/generic/*.c"
+     )
+
+if (MSVC AND AWS_ARCH_INTEL)
+    file(GLOB AWS_COMMON_ARCH_SRC
+        "source/arch/intel/*.c"
+        "source/arch/intel/msvc/*.c"
+        )
+
+    source_group("Source Files\\arch\\intel" FILES ${AWS_COMMON_ARCH_SRC})
+elseif(AWS_ARCH_INTEL AND AWS_HAVE_GCC_INLINE_ASM)
+    file(GLOB AWS_COMMON_ARCH_SRC
+        "source/arch/intel/*.c"
+         "source/arch/intel/asm/*.c"
+        )
+endif()
+
+if (MSVC AND (AWS_ARCH_ARM64 OR AWS_ARCH_ARM32))
+    file(GLOB AWS_COMMON_ARCH_SRC
+        "source/arch/arm/msvc/*.c"
+        )
+elseif (AWS_HAVE_AUXV AND (AWS_ARCH_ARM64 OR AWS_ARCH_ARM32))
+    file(GLOB AWS_COMMON_ARCH_SRC
+        "source/arch/arm/asm/*.c"
+        )
 endif()
 
 list(APPEND PLATFORM_LIBS ${CMAKE_DL_LIBS})
@@ -112,6 +145,7 @@ file(GLOB COMMON_HEADERS
 file(GLOB COMMON_SRC
         ${AWS_COMMON_SRC}
         ${AWS_COMMON_OS_SRC}
+        ${AWS_COMMON_ARCH_SRC}
         )
 
 
@@ -152,14 +186,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # Enable SIMD encoder if the compiler supports the right features
 simd_add_definitions(${PROJECT_NAME})
 
-if (HAVE_MAY_I_USE OR HAVE_BUILTIN_CPU_SUPPORTS OR HAVE_MSVC_CPUIDEX)
-    set(HAVE_SIMD_CPUID TRUE)
-endif()
-
-if (HAVE_AVX2_INTRINSICS AND HAVE_SIMD_CPUID)
+if (HAVE_AVX2_INTRINSICS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DUSE_SIMD_ENCODING)
-    target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source/arch/cpuid.c")
-    simd_add_source_avx2(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/source/arch/encoding_avx2.c")
+    simd_add_source_avx2(${PROJECT_NAME} "source/arch/intel/encoding_avx2.c")
     message(STATUS "Building SIMD base64 decoder")
 endif()
 
@@ -223,6 +252,7 @@ list(APPEND EXPORT_MODULES
     "cmake/AwsSanitizers.cmake"
     "cmake/AwsSIMD.cmake"
     "cmake/AwsFindPackage.cmake"
+    "cmake/AwsFeatureTests.cmake"
     )
 
 install(FILES ${EXPORT_MODULES}
@@ -234,7 +264,7 @@ configure_file(${CONFIG_HEADER_TEMPLATE}
         ${GENERATED_CONFIG_HEADER}
         ESCAPE_QUOTES)
 
-if (NOT CMAKE_CROSSCOMPILING)
+if (ALLOW_CROSS_COMPILED_TESTS OR NOT CMAKE_CROSSCOMPILING)
     if (BUILD_TESTING)
         add_subdirectory(tests)
     endif()

@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include "logging_test_utilities.h"
@@ -54,7 +44,7 @@ struct aws_string *aws_string_new_log_writer_test_filename(struct aws_allocator 
     char filename_array[64];
     struct aws_byte_buf filename_buf = aws_byte_buf_from_empty_array(filename_array, sizeof(filename_array));
 
-#ifndef WIN32
+#ifndef _WIN32
     AWS_FATAL_ASSERT(aws_byte_buf_write_from_whole_cursor(&filename_buf, aws_byte_cursor_from_c_str("./")));
 #endif
 

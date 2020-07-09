@@ -1,16 +1,6 @@
-/*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 #include <aws/common/byte_buf.h>
@@ -572,7 +562,10 @@ int aws_byte_buf_append_with_lookup(
     return AWS_OP_SUCCESS;
 }
 
-int aws_byte_buf_append_dynamic(struct aws_byte_buf *to, const struct aws_byte_cursor *from) {
+static int s_aws_byte_buf_append_dynamic(
+    struct aws_byte_buf *to,
+    const struct aws_byte_cursor *from,
+    bool clear_released_memory) {
     AWS_PRECONDITION(aws_byte_buf_is_valid(to));
     AWS_PRECONDITION(aws_byte_cursor_is_valid(from));
     AWS_ERROR_PRECONDITION(to->allocator);
@@ -639,6 +632,11 @@ int aws_byte_buf_append_dynamic(struct aws_byte_buf *to, const struct aws_byte_c
         if (from->len > 0) {
             memcpy(new_buffer + to->len, from->ptr, from->len);
         }
+
+        if (clear_released_memory) {
+            aws_secure_zero(to->buffer, to->capacity);
+        }
+
         /*
          * Get rid of the old buffer
          */
@@ -663,6 +661,38 @@ int aws_byte_buf_append_dynamic(struct aws_byte_buf *to, const struct aws_byte_c
     AWS_POSTCONDITION(aws_byte_buf_is_valid(to));
     AWS_POSTCONDITION(aws_byte_cursor_is_valid(from));
     return AWS_OP_SUCCESS;
+}
+
+int aws_byte_buf_append_dynamic(struct aws_byte_buf *to, const struct aws_byte_cursor *from) {
+    return s_aws_byte_buf_append_dynamic(to, from, false);
+}
+
+int aws_byte_buf_append_dynamic_secure(struct aws_byte_buf *to, const struct aws_byte_cursor *from) {
+    return s_aws_byte_buf_append_dynamic(to, from, true);
+}
+
+static int s_aws_byte_buf_append_byte_dynamic(struct aws_byte_buf *buffer, uint8_t value, bool clear_released_memory) {
+#if defined(_MSC_VER)
+#    pragma warning(push)
+#    pragma warning(disable : 4221)
+#endif /* _MSC_VER */
+
+    /* msvc isn't a fan of this pointer-to-local assignment */
+    struct aws_byte_cursor eq_cursor = {.len = 1, .ptr = &value};
+
+#if defined(_MSC_VER)
+#    pragma warning(pop)
+#endif /* _MSC_VER */
+
+    return s_aws_byte_buf_append_dynamic(buffer, &eq_cursor, clear_released_memory);
+}
+
+int aws_byte_buf_append_byte_dynamic(struct aws_byte_buf *buffer, uint8_t value) {
+    return s_aws_byte_buf_append_byte_dynamic(buffer, value, false);
+}
+
+int aws_byte_buf_append_byte_dynamic_secure(struct aws_byte_buf *buffer, uint8_t value) {
+    return s_aws_byte_buf_append_byte_dynamic(buffer, value, true);
 }
 
 int aws_byte_buf_reserve(struct aws_byte_buf *buffer, size_t requested_capacity) {
@@ -1080,6 +1110,7 @@ bool aws_byte_cursor_read_and_fill_buffer(
  */
 bool aws_byte_cursor_read_u8(struct aws_byte_cursor *AWS_RESTRICT cur, uint8_t *AWS_RESTRICT var) {
     AWS_PRECONDITION(aws_byte_cursor_is_valid(cur));
+    AWS_PRECONDITION(AWS_MEM_IS_WRITABLE(var, 1));
     bool rv = aws_byte_cursor_read(cur, var, 1);
     AWS_POSTCONDITION(aws_byte_cursor_is_valid(cur));
     return rv;
@@ -1262,6 +1293,11 @@ bool aws_byte_buf_write(struct aws_byte_buf *AWS_RESTRICT buf, const uint8_t *AW
     AWS_PRECONDITION(aws_byte_buf_is_valid(buf));
     AWS_PRECONDITION(AWS_MEM_IS_READABLE(src, len), "Input array [src] must be readable up to [len] bytes.");
 
+    if (len == 0) {
+        AWS_POSTCONDITION(aws_byte_buf_is_valid(buf));
+        return true;
+    }
+
     if (buf->len > (SIZE_MAX >> 1) || len > (SIZE_MAX >> 1) || buf->len + len > buf->capacity) {
         AWS_POSTCONDITION(aws_byte_buf_is_valid(buf));
         return false;
@@ -1298,6 +1334,20 @@ bool aws_byte_buf_write_from_whole_cursor(struct aws_byte_buf *AWS_RESTRICT buf,
     AWS_PRECONDITION(aws_byte_buf_is_valid(buf));
     AWS_PRECONDITION(aws_byte_cursor_is_valid(&src));
     return aws_byte_buf_write(buf, src.ptr, src.len);
+}
+
+struct aws_byte_cursor aws_byte_buf_write_to_capacity(
+    struct aws_byte_buf *buf,
+    struct aws_byte_cursor *advancing_cursor) {
+
+    AWS_PRECONDITION(aws_byte_buf_is_valid(buf));
+    AWS_PRECONDITION(aws_byte_cursor_is_valid(advancing_cursor));
+
+    size_t available = buf->capacity - buf->len;
+    size_t write_size = aws_min_size(available, advancing_cursor->len);
+    struct aws_byte_cursor write_cursor = aws_byte_cursor_advance(advancing_cursor, write_size);
+    aws_byte_buf_write_from_whole_cursor(buf, write_cursor);
+    return write_cursor;
 }
 
 /**
@@ -1432,4 +1482,44 @@ int aws_byte_buf_append_and_update(struct aws_byte_buf *to, struct aws_byte_curs
 
     from_and_update->ptr = to->buffer + (to->len - from_and_update->len);
     return AWS_OP_SUCCESS;
+}
+
+static struct aws_byte_cursor s_null_terminator_cursor = AWS_BYTE_CUR_INIT_FROM_STRING_LITERAL("\0");
+int aws_byte_buf_append_null_terminator(struct aws_byte_buf *buf) {
+    return aws_byte_buf_append_dynamic(buf, &s_null_terminator_cursor);
+}
+
+bool aws_isalnum(uint8_t ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
+}
+
+bool aws_isalpha(uint8_t ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+}
+
+bool aws_isdigit(uint8_t ch) {
+    return (ch >= '0' && ch <= '9');
+}
+
+bool aws_isxdigit(uint8_t ch) {
+    return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+}
+
+bool aws_isspace(uint8_t ch) {
+    switch (ch) {
+        case 0x20: /* ' ' - space */
+            return true;
+        case 0x09: /* '\t' - horizontal tab */
+            return true;
+        case 0x0A: /* '\n' - line feed */
+            return true;
+        case 0x0B: /* '\v' - vertical tab */
+            return true;
+        case 0x0C: /* '\f' - form feed */
+            return true;
+        case 0x0D: /* '\r' - carriage return */
+            return true;
+        default:
+            return false;
+    }
 }

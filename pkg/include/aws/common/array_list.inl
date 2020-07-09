@@ -1,19 +1,9 @@
 #ifndef AWS_COMMON_ARRAY_LIST_INL
 #define AWS_COMMON_ARRAY_LIST_INL
 
-/*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+/**
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0.
  */
 
 /* This is implicitly included, but helps with editor highlighting */
@@ -119,6 +109,17 @@ AWS_STATIC_IMPL
 void aws_array_list_clean_up(struct aws_array_list *AWS_RESTRICT list) {
     AWS_PRECONDITION(AWS_IS_ZEROED(*list) || aws_array_list_is_valid(list));
     if (list->alloc && list->data) {
+        aws_mem_release(list->alloc, list->data);
+    }
+
+    AWS_ZERO_STRUCT(*list);
+}
+
+AWS_STATIC_IMPL
+void aws_array_list_clean_up_secure(struct aws_array_list *AWS_RESTRICT list) {
+    AWS_PRECONDITION(AWS_IS_ZEROED(*list) || aws_array_list_is_valid(list));
+    if (list->alloc && list->data) {
+        aws_secure_zero((void *)list->data, list->current_size);
         aws_mem_release(list->alloc, list->data);
     }
 
