@@ -19,7 +19,7 @@ No changes made other than
 Create yourself a `.orig.tar.gz` and use it with `dpkg-buildpackage` as for example via 
 
 ```sh
-tar cvz --exclude=.git --exclude=debian --file aws-c-common_0.4.30.orig.tar.gz pkg/
+tar cvz --exclude=.git --exclude=debian --file aws-c-common_0.4.48.orig.tar.gz pkg/
 cd pkg && dpkg-buildpackage -rfakeroot -us -uc -tc
 ```
 

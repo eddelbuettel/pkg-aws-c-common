@@ -1,3 +1,9 @@
+aws-c-common (0.4.48-1.1804.1) bionic; urgency=medium
+
+  * Ubuntu PPA build of informal and unofficial package
+
+ -- Dirk Eddelbuettel <edd@debian.org>  Thu, 09 Jul 2020 18:44:24 +0000
+
 aws-c-common (0.4.30-1debian) unstable; urgency=medium
 
   * Debian build of informal and unofficial package
