@@ -78,6 +78,7 @@ enum aws_common_log_subject {
     AWS_LS_COMMON_GENERAL = AWS_LOG_SUBJECT_BEGIN_RANGE(AWS_C_COMMON_PACKAGE_ID),
     AWS_LS_COMMON_TASK_SCHEDULER,
     AWS_LS_COMMON_MEMTRACE,
+    AWS_LS_COMMON_XML_PARSER,
 
     AWS_LS_COMMON_LAST = AWS_LOG_SUBJECT_END_RANGE(AWS_C_COMMON_PACKAGE_ID)
 };
@@ -229,6 +230,14 @@ void aws_logger_clean_up(struct aws_logger *logger);
  */
 AWS_COMMON_API
 int aws_log_level_to_string(enum aws_log_level log_level, const char **level_string);
+
+/**
+ * Converts a c-string constant to a log level value.  Uses case-insensitive comparison
+ * and simply iterates all possibilities until a match or nothing remains.  If no match
+ * is found, AWS_OP_ERR is returned.
+ */
+AWS_COMMON_API
+int aws_string_to_log_level(const char *level_string, enum aws_log_level *log_level);
 
 /**
  * Converts an aws_thread_id_t to a c-string.  For portability, aws_thread_id_t

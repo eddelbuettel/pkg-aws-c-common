@@ -24,7 +24,9 @@ struct aws_string *aws_string_new_from_array(struct aws_allocator *allocator, co
     /* Fields are declared const, so we need to copy them in like this */
     *(struct aws_allocator **)(&str->allocator) = allocator;
     *(size_t *)(&str->len) = len;
-    memcpy((void *)str->bytes, bytes, len);
+    if (len > 0) {
+        memcpy((void *)str->bytes, bytes, len);
+    }
     *(uint8_t *)&str->bytes[len] = '\0';
     AWS_RETURN_WITH_POSTCONDITION(str, aws_string_is_valid(str));
 }
@@ -32,6 +34,16 @@ struct aws_string *aws_string_new_from_array(struct aws_allocator *allocator, co
 struct aws_string *aws_string_new_from_string(struct aws_allocator *allocator, const struct aws_string *str) {
     AWS_PRECONDITION(allocator && aws_string_is_valid(str));
     return aws_string_new_from_array(allocator, str->bytes, str->len);
+}
+
+struct aws_string *aws_string_new_from_cursor(struct aws_allocator *allocator, const struct aws_byte_cursor *cursor) {
+    AWS_PRECONDITION(allocator && aws_byte_cursor_is_valid(cursor));
+    return aws_string_new_from_array(allocator, cursor->ptr, cursor->len);
+}
+
+struct aws_string *aws_string_new_from_buf(struct aws_allocator *allocator, const struct aws_byte_buf *buf) {
+    AWS_PRECONDITION(allocator && aws_byte_buf_is_valid(buf));
+    return aws_string_new_from_array(allocator, buf->buffer, buf->len);
 }
 
 void aws_string_destroy(struct aws_string *str) {
