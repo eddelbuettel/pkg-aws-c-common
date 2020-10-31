@@ -5,6 +5,7 @@ Taken as a complete snapshot on 2020-02-15 at sha1 15e64e4 from
 https://github.com/awslabs/aws-c-common
 
 Updated 2020-07-09 with release 0.4.48 sha1 48aafc6
+Updated 2020-10-30 with release 0.4.59 sha1 70ed84b
 
 ### Changes
 
@@ -19,7 +20,7 @@ No changes made other than
 Create yourself a `.orig.tar.gz` and use it with `dpkg-buildpackage` as for example via 
 
 ```sh
-tar cvz --exclude=.git --exclude=debian --file aws-c-common_0.4.48.orig.tar.gz pkg/
+tar cvz --exclude=.git --exclude=debian --file aws-c-common_0.4.59.orig.tar.gz pkg/
 cd pkg && dpkg-buildpackage -rfakeroot -us -uc -tc
 ```
 

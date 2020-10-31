@@ -1,4 +1,4 @@
-aws-c-common (0.4.59-1.1804.1) bionic; urgency=medium
+aws-c-common (0.4.59-1.2004.1) focal; urgency=medium
 
   * Upstream update
   * Ubuntu PPA build of informal and unofficial package
